@@ -112,7 +112,7 @@ def getChangeString()
 
 def emailnotify(branchName,unstableCounter,errorCounter,change,mailList,unstableCauses)
 	{
-   	admin = 'shrikant.khawale@3ds.com'
+   	admin = 'khawaleshrikant@hotmail.com'
    	if (branchName=="master" ||  branchName=="develop" || (branchName).startsWith('support'))
  	    {
         mailRecipients = mailList
@@ -238,7 +238,7 @@ def runNugetPack(projFile,Configuration,Platform)
 
 def runNugetPush()
   {
-	  bat """nuget push created_packages\\* -Source https://eu-muc-art01.ux.dsone.3ds.com/artifactory/api/nuget/StandardComponents"""
+	  bat """nuget push created_packages\\* -Source https://artifactory-host/artifactory/api/nuget/StandardComponents"""
   }
 
 def createJIRATicket(JIRA_SITE, key, Components)
