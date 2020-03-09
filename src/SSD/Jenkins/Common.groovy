@@ -1,19 +1,19 @@
-package org.common
+package org.common   //Mentioned package with this file name 
 
-import hudson.model.*
-import hudson.FilePath
-import groovy.io.FileType
-import groovy.transform.Field
+import hudson.model.*  // imported for default jenkins class 
+import hudson.FilePath // for file operation 
+import groovy.io.FileType // to get file of interest
+import groovy.transform.Field  //to make use of @field for variable scope
 
 
-def check(repo,branchName) 
+def check(repo,branchName)  //Method to clone repo , need repo url and branchName as a argument. 
 	{
  	 	checkout changelog: true, poll: true, scm: [$class: 'GitSCM', branches: [[name: "$branchName"]], doGenerateSubmoduleConfigurations: false,
     extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: true, reference: '', trackingSubmodules: false]],
     submoduleCfg: [], userRemoteConfigs: [[credentialsId: '477cf2d2-45a6-4447-ad1b-26c97b696278', url: "$repo"]]]	
 	}
 
-def readBaseVersion()
+def readBaseVersion()   // I assumend to calculate version from code commit , so defind base version in version.txt file.
 	{
     String version = readFile("version.txt")
 		//println "'" + version + "
@@ -23,7 +23,7 @@ def readBaseVersion()
 		def Patch = versions[2]
     return [major_version, minor_version, Patch ]
 	}
-def getCommitNumber()
+def getCommitNumber()  // getting commit number
 	{
     branchName = BRANCH_NAME
     def command = "git rev-list --count origin/$branchName"
@@ -31,14 +31,14 @@ def getCommitNumber()
 		def commitNumber = gitCommitCountBat[gitCommitCountBat.size()-1]
 		return commitNumber
   }
-def getGitSha()
+def getGitSha()  // getting sha-1 code for perticular commt , intial 8 character out of 40 
 	{
     String[] gitCommitBat = bat(returnStdout: true, script: 'git rev-parse HEAD').split("\r?\n")
 	  def git_commit = gitCommitBat[gitCommitBat.size()-1]
 	  def git_sha = git_commit.substring(0,8)
     return git_sha
   }
-def getGitAllversions()
+def getGitAllversions()  // generating revision number , revision version. 
 	{
    	(major_version, minor_version, Patch) = readBaseVersion()
    	commitNumber = getCommitNumber()
@@ -50,7 +50,7 @@ def getGitAllversions()
 		minor_version = Integer.parseInt(minor_version) + ((Integer.parseInt(commitNumber)) / 10000) as Integer
 		return [major_version, minor_version, Patch, revision_number, revision_version, git_sha]
   }
-def getVersion(branchName)
+def getVersion(branchName)  // generating versions for prodversion , file version and nuget 
 	{
     (major_version, minor_version, Patch, revision_number, revision_version, git_sha) = getGitAllversions()
    	def prefix=branchName.substring(0,1)
@@ -72,7 +72,7 @@ def getVersion(branchName)
    }
 
 @NonCPS
-def get_unitTestFiles()
+def get_unitTestFiles()   // To get tests files , which are ending with .Tests and also under bin/release folder.
 	{
    	unitTestFiles = []
    	dh = new File("${WORKSPACE}")
@@ -87,7 +87,7 @@ def get_unitTestFiles()
   }
 
 @NonCPS
-def getChangeString()
+def getChangeString()  //Getting last commit msg to display in email notification 
 	{
 		MAX_MSG_LEN = 100
   	def changeString = ""
@@ -110,7 +110,7 @@ def getChangeString()
   		}
 	}
 
-def emailnotify(branchName,unstableCounter,errorCounter,change,mailList,unstableCauses)
+def emailnotify(branchName,unstableCounter,errorCounter,change,mailList,unstableCauses) // notification method
 	{
    	admin = 'khawaleshrikant@hotmail.com'
    	if (branchName=="master" ||  branchName=="develop" || (branchName).startsWith('support'))
@@ -166,18 +166,18 @@ def emailnotify(branchName,unstableCounter,errorCounter,change,mailList,unstable
 			}
   }
 
-def runDoxygen(doxconfig)
+def runDoxygen(doxconfig)  //To run doxygen step if we have doxygen config file. 
  {
   def doxygen = tool name: 'Doxygen', type: 'hudson.plugins.doxygen.DoxygenInstallation'
   bat """ "${doxygen}" ${doxconfig} """
  }
 
-def runHtmlPublish(reportDir, reportFiles, reportName, reportTitles)
+def runHtmlPublish(reportDir, reportFiles, reportName, reportTitles)  // To publish HTML report 
  {
   	publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: reportDir, reportFiles: reportFiles, reportName: reportName, reportTitles: reportTitles] )
  }
 
-def runXUnitTest()
+def runXUnitTest()    //Running xUnit test 
  {
     unstableCauses = ""
     unstableCounter = 0
@@ -204,7 +204,7 @@ def runXUnitTest()
 	  return [unstableCauses, unstableCounter, unitTestResult]
 }
 
-def runCodeCoverageXunit()
+def runCodeCoverageXunit()  //To run Code coverage scan to generate code coverage report 
   {
     String testAssemblyFiles = ""
     for (int m = 0; m <unitTestFiles.size(); m++) {
@@ -229,19 +229,19 @@ def runCodeCoverageXunit()
 	"""
 }
 
-def runNugetPack(projFile,Configuration,Platform)
+def runNugetPack(projFile,Configuration,Platform)  // To pack Nuget 
   {
     bat """ if not exist "created_packages" mkdir created_packages"""
     def output_path = "created_packages"
     bat """nuget pack ${projFile} -Verbosity detailed -IncludeReferencedProjects -Prop Configuration=${Configuration} -Prop Platform=${Platform} -OutputDirectory ${output_path} -version ${nuget_vrsion}"""
   }
 
-def runNugetPush()
+def runNugetPush()    //To push Nuget 
   {
 	  bat """nuget push created_packages\\* -Source https://artifactory-host/artifactory/api/nuget/StandardComponents"""
   }
 
-def createJIRATicket(JIRA_SITE, key, Components)
+def createJIRATicket(JIRA_SITE, key, Components)  // If build is failing JIRA ticket should get created. 
   {
     withEnv(["JIRA_SITE=$JIRA_SITE"]){
       def testIssue = [fields: [ // id or key must present for project.
