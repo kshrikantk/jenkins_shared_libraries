@@ -1,9 +1,9 @@
 package org.common   //Mentioned package with this file name 
 
-import hudson.model.*  // imported for default jenkins class 
-import hudson.FilePath // for file operation 
-import groovy.io.FileType // to get file of interest
-import groovy.transform.Field  //to make use of @field for variable scope
+import hudson.model.*  				// imported for default jenkins class 
+import hudson.FilePath 				// for file operation 
+import groovy.io.FileType 			// to get file of interest
+import groovy.transform.Field  			//to make use of @field for variable scope
 
 
 def check(repo,branchName)  //Method to clone repo , need repo url and branchName as a argument. 
